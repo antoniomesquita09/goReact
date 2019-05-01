@@ -18,7 +18,7 @@
   },
   "plugins": ["react"],
   "rules": {
-    "react/jsx-filename-extensions": [
+    "react/jsx-filename-extension": [
       "error",
       { "extensions": [".js", ".jsx"] }
     ],
