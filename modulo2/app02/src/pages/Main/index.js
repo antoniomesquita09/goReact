@@ -14,6 +14,19 @@ class Main extends Component {
     repositories: [],
   };
 
+  componentDidMount() {
+    const { repositories } = this.state;
+    const getStorage = JSON.parse(localStorage.getItem('myRepositories'));
+
+    this.setState({ repositories: [...repositories, ...getStorage] });
+  }
+
+  componentDidUpdate() {
+    const { repositories } = this.state;
+
+    localStorage.setItem('myRepositories', JSON.stringify(repositories));
+  }
+
   handleAddRepository = async (e) => {
     const { repositories, repositoryInput } = this.state;
 
@@ -38,6 +51,33 @@ class Main extends Component {
     }
   };
 
+  handleRemoveRepo = (id) => {
+    const { repositories } = this.state;
+
+    this.setState({ repositories: repositories.filter(repo => repo.id !== id) });
+  };
+
+  handleUpdateRepo = async (id) => {
+    const { repositories } = this.state;
+
+    const repository = repositories.find(repo => repo.id === id);
+    console.log(repository);
+
+    try {
+      const { data } = await api.get(`/repos/${repository.full_name}`);
+
+      data.lastCommit = moment(data.pushed_at).fromNow();
+
+      this.setState({
+        repositoryInput: '',
+        repositories: repositories.map(repo => (repo.id === data.id ? data : repo)),
+        repositoryError: false,
+      });
+    } catch (err) {
+      this.setState({ repositoryError: true });
+    }
+  };
+
   render() {
     const {
       repositories, repositoryInput, repositoryError, loading,
@@ -55,7 +95,11 @@ class Main extends Component {
           />
           <button type="submit">{loading ? <i className="fa fa-spinner fa-pulse" /> : 'Ok'}</button>
         </Form>
-        <CompareList repositories={repositories} />
+        <CompareList
+          removeRepo={this.handleRemoveRepo}
+          updateRepo={this.handleUpdateRepo}
+          repositories={repositories}
+        />
       </Container>
     );
   }
